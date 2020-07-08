@@ -1,5 +1,7 @@
 package com.maltsau.maksim.webcrawler.application;
 
+import java.util.Map;
+
 public interface WebCrawler {
-    String crawlWebSite();
+    Map<String, Long> crawlWebSite();
 }
