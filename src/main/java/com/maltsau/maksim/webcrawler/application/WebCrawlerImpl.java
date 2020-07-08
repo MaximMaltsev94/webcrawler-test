@@ -1,11 +1,16 @@
-package com.maltsau.maksim.webcrawler;
+package com.maltsau.maksim.webcrawler.application;
 
+import com.maltsau.maksim.webcrawler.webpageresolver.WebPageResolver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component("webCrawler")
 public class WebCrawlerImpl implements WebCrawler {
     private Integer linkDepth;
     private Integer pagesLimit;
+    private String seedUrl;
+
+    private WebPageResolver webPageResolver;
 
     public void setLinkDepth(Integer linkDepth) {
         this.linkDepth = linkDepth;
@@ -15,9 +20,18 @@ public class WebCrawlerImpl implements WebCrawler {
         this.pagesLimit = pagesLimit;
     }
 
+    public void setSeedUrl(String seedUrl) {
+        this.seedUrl = seedUrl;
+    }
+
+    @Autowired
+    public void setWebPageResolver(WebPageResolver webPageResolver) {
+        this.webPageResolver = webPageResolver;
+    }
+
     @Override
     public String crawlWebSite() {
-        return null;
+        return webPageResolver.getPageContent(seedUrl);
     }
 
     @Override

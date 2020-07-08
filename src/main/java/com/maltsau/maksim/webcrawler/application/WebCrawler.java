@@ -1,4 +1,4 @@
-package com.maltsau.maksim.webcrawler;
+package com.maltsau.maksim.webcrawler.application;
 
 public interface WebCrawler {
     String crawlWebSite();

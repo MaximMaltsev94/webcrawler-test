@@ -1,6 +1,5 @@
 package com.maltsau.maksim.webcrawler.application;
 
-import com.maltsau.maksim.webcrawler.WebCrawlerImpl;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -9,7 +8,9 @@ public class WebCrawlerApplication {
         ConfigurableApplicationContext applicationContext =
                 new ClassPathXmlApplicationContext("webcrawler-spring-context.xml");
 
-        System.out.println(applicationContext.getBean(WebCrawlerImpl.class));
+        WebCrawler webCrawler = applicationContext.getBean(WebCrawler.class);
+
+        System.out.println(webCrawler.crawlWebSite());
 
         applicationContext.close();
     }

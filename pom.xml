@@ -17,6 +17,7 @@
         <org.springframework.version>5.2.7.RELEASE</org.springframework.version>
         <apache.httpclient5.version>5.0</apache.httpclient5.version>
         <slf4j.log4j12.version>1.7.30</slf4j.log4j12.version>
+        <apache.httpclient.version>4.5.12</apache.httpclient.version>
     </properties>
 
     <dependencies>
@@ -42,10 +43,11 @@
             <version>${apache.commons.lang.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.httpcomponents.client5</groupId>
-            <artifactId>httpclient5</artifactId>
-            <version>${apache.httpclient5.version}</version>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>${apache.httpclient.version}</version>
         </dependency>
+
 
         <dependency>
             <groupId>org.slf4j</groupId>

@@ -16,7 +16,7 @@
         <value>file:///webcrawler-config/webcrawler-override.properties</value>
     </util:list>
     
-    <bean id="webcrawlerOverrideConfigurer" class="org.springframework.beans.factory.config.PropertyOverrideConfigurer">
+    <bean id="webCrawlerOverrideConfigurer" class="org.springframework.beans.factory.config.PropertyOverrideConfigurer">
         <property name="locations" ref="propertyOverrideLocations"/>
         <property name="ignoreInvalidKeys" value="true"/>
         <property name="ignoreResourceNotFound" value="false"/>
