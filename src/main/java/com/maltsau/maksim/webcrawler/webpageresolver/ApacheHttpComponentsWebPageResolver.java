@@ -1,5 +1,6 @@
 package com.maltsau.maksim.webcrawler.webpageresolver;
 
+import com.maltsau.maksim.webcrawler.exception.WebPageResolverException;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -8,6 +9,8 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
 
 @Component
 public class ApacheHttpComponentsWebPageResolver implements WebPageResolver {
@@ -26,9 +29,8 @@ public class ApacheHttpComponentsWebPageResolver implements WebPageResolver {
             HttpGet getPageRequest = new HttpGet(uri);
             HttpResponse response = httpClient.execute(getPageRequest);
             return EntityUtils.toString(response.getEntity());
-        } catch (Exception e) {
-            LOG.error(String.format("error while getting page `%s`", uri), e);
-            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new WebPageResolverException(e);
         }
 
     }
