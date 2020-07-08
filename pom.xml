@@ -82,7 +82,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib</classpathPrefix>
-                            <mainClass>com.maltsau.maksim.webcrawler.WebCrawler</mainClass>
+                            <mainClass>com.maltsau.maksim.webcrawler.application.WebCrawlerApplication</mainClass>
                         </manifest>
                         <manifestEntries>
                             <Class-Path>lib/</Class-Path>
