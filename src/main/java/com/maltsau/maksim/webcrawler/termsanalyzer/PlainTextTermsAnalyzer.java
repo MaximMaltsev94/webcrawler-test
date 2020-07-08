@@ -4,7 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PlaintextTermsAnalyzer implements TermsAnalyzer {
+public class PlainTextTermsAnalyzer implements TermsAnalyzer {
     //TODO tests
     @Override
     public Long analyzeMatchesCount(String source, String term) {

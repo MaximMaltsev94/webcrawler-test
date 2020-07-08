@@ -10,7 +10,7 @@ public class HTMLBodyTermsAnalyzer implements TermsAnalyzer{
     private TermsAnalyzer plainTextTermsAnalyzer;
 
     @Autowired
-    @Qualifier("plaintextTermsAnalyzer")
+    @Qualifier("plainTextTermsAnalyzer")
     public void setPlainTextTermsAnalyzer(TermsAnalyzer plainTextTermsAnalyzer) {
         this.plainTextTermsAnalyzer = plainTextTermsAnalyzer;
     }
