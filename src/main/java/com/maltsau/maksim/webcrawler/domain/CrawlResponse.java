@@ -28,9 +28,6 @@ public class CrawlResponse {
 
     @Override
     public String toString() {
-        return "CrawlResponse{" +
-                "url='" + url + '\'' +
-                ", termsMatchCount=" + termsMatchCount +
-                '}';
+        return String.format("{\"crawlResponse\":{\"url\":\"%s\",\"termsMatchCount\":\"%s\"}}", url, termsMatchCount);
     }
 }

@@ -3,8 +3,9 @@ package com.maltsau.maksim.webcrawler.webpageresolver;
 import com.maltsau.maksim.webcrawler.exception.WebPageResolverException;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +20,12 @@ public class ApacheHttpComponentsWebPageResolver implements WebPageResolver {
     private HttpClient httpClient;
 
     public ApacheHttpComponentsWebPageResolver() {
-        this.httpClient = HttpClients.createDefault();
+        int timeout = 5;
+        RequestConfig config = RequestConfig.custom()
+                .setConnectTimeout(timeout * 1000)
+                .setConnectionRequestTimeout(timeout * 1000)
+                .setSocketTimeout(timeout * 1000).build();
+        this.httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
     }
 
     @Override
@@ -29,7 +35,7 @@ public class ApacheHttpComponentsWebPageResolver implements WebPageResolver {
             HttpGet getPageRequest = new HttpGet(uri);
             HttpResponse response = httpClient.execute(getPageRequest);
             return EntityUtils.toString(response.getEntity());
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new WebPageResolverException(e);
         }
 

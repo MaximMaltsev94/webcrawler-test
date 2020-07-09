@@ -18,6 +18,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Component("webCrawler")
 public class WebCrawlerImpl implements WebCrawler {
@@ -26,6 +31,8 @@ public class WebCrawlerImpl implements WebCrawler {
     private WebPageResolver webPageResolver;
 
     private TermsAnalyzer termsAnalyzer;
+
+    private ForkJoinPool forkJoinPool = new ForkJoinPool();
 
     @Autowired
     public void setWebPageResolver(WebPageResolver webPageResolver) {
@@ -45,7 +52,7 @@ public class WebCrawlerImpl implements WebCrawler {
             Map<String, Long> termsMatchCount = termsAnalyzer.analyzeMatchesCount(pageContentHtml, termsList);
             return new CrawlResponse(url, pageContentHtml, termsMatchCount);
         } catch (WebPageResolverException wpre) {
-            LOG.error("error while getting page: `{}`", url, wpre);
+            LOG.error("error while getting page: `{}`, skipping page.", url, wpre);
             return new CrawlResponse(url, null, Collections.emptyMap());
         }
     }
@@ -53,37 +60,62 @@ public class WebCrawlerImpl implements WebCrawler {
     @Override
     public List<CrawlResponse> crawlWebSiteRecursively(String url, List<String> termsList, Integer linkDepth,
                                                        Integer pagesLimit) {
-        List<CrawlResponse> resultList = new ArrayList<>();
-        crawlWebSiteRecursive(url, termsList, 0, 0, linkDepth, pagesLimit, resultList);
-        return resultList;
+
+        LOG.info("submit url: `{}`, currentDepth : `{}`, pagesLeft : `{}`", url, 0, pagesLimit);
+        AtomicInteger pagesToScanLeft = new AtomicInteger(pagesLimit);
+        return forkJoinPool.invoke(new RecursiveWebSiteCrawTask(url, termsList,
+                0, linkDepth, pagesToScanLeft));
     }
 
-    private void crawlWebSiteRecursive(String url, List<String> termsList,
-                                      Integer currentDepth, Integer currentPageAnalyzedCount,
-                                      Integer maxLinkDepth, Integer maxPagesToScan,
-                                      List<CrawlResponse> resultList) {
+    private class RecursiveWebSiteCrawTask extends RecursiveTask<List<CrawlResponse>> {
+        private String url;
+        private List<String> termsList;
+        private Integer currentDepth;
+        private Integer maxLinkDepth;
+        private AtomicInteger pagesToScanLeft;
 
-        if(currentDepth >= maxLinkDepth || currentPageAnalyzedCount >= maxPagesToScan) {
-            return;
+        public RecursiveWebSiteCrawTask(String url, List<String> termsList,
+                                        Integer currentDepth,
+                                        Integer maxLinkDepth, AtomicInteger pagesToScanLeft) {
+            this.url = url;
+            this.termsList = termsList;
+            this.currentDepth = currentDepth;
+            this.maxLinkDepth = maxLinkDepth;
+            this.pagesToScanLeft = pagesToScanLeft;
         }
-        LOG.info("parsing url: `{}`, currentDepth : `{}`, currentPagesAnalyzed : `{}`", url, currentDepth, currentPageAnalyzedCount);
-        CrawlResponse crawlResponse = crawlWebSite(url, termsList);
-        resultList.add(crawlResponse);
 
-        //TODO make parallel calls using Fork-Join Framework / manual handle using ExecutorService ThreadPools
-        //TODO focus on breadth rather than depth.
-        List<String> nestedUrls = getAllLinks(url, crawlResponse.getPageContentHtml());
-        for (String nestedUrl : nestedUrls) {
-            currentPageAnalyzedCount++;
-            crawlWebSiteRecursive(nestedUrl, termsList,
-                    currentDepth + 1, currentPageAnalyzedCount,
-                    maxLinkDepth, maxPagesToScan,
-                    resultList);
+        @Override
+        protected List<CrawlResponse> compute() {
+            CrawlResponse crawlResponse = crawlWebSite(url, termsList);
+
+            if (currentDepth >= maxLinkDepth || pagesToScanLeft.get() <= 0) {
+                return Collections.singletonList(crawlResponse);
+            }
+
+            //TODO focus on breadth rather than depth.
+            List<String> nestedUrls = getAllLinks(crawlResponse.getPageContentHtml());
+
+            List<RecursiveWebSiteCrawTask> tasks = new ArrayList<>();
+            for (String nestedUrl : nestedUrls) {
+                if (pagesToScanLeft.decrementAndGet() <= 0) {
+                    break;
+                }
+
+                LOG.info("submit url: `{}`, currentDepth : `{}`, pagesLeft : `{}`", nestedUrl, currentDepth + 1, pagesToScanLeft);
+                tasks.add(new RecursiveWebSiteCrawTask(nestedUrl, termsList,
+                        currentDepth + 1,
+                        maxLinkDepth, pagesToScanLeft));
+            }
+
+            return ForkJoinTask.invokeAll(tasks).stream()
+                    .map(ForkJoinTask::join)
+                    .flatMap(List::stream)
+                    .collect(Collectors.toList());
         }
     }
 
-    private List<String> getAllLinks(String hostUrl, String pageContentHtml) {
-        if(StringUtils.isAnyBlank(hostUrl, pageContentHtml)) {
+    private List<String> getAllLinks(String pageContentHtml) {
+        if (StringUtils.isBlank(pageContentHtml)) {
             return Collections.emptyList();
         }
         List<String> resultLinks = new ArrayList<>();
@@ -93,11 +125,7 @@ public class WebCrawlerImpl implements WebCrawler {
             if(StringUtils.isBlank(href) || StringUtils.startsWith(href, "#")) {
                 continue;
             }
-            if(StringUtils.startsWith(href, "/")) {
-                resultLinks.add(hostUrl + href);
-            } else if(StringUtils.startsWith(href, "http")) {
-                resultLinks.add(href);
-            }
+            resultLinks.add(href);
         }
         return resultLinks;
     }
