@@ -24,7 +24,7 @@ import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-@Component("webCrawler")
+@Component
 public class WebCrawlerImpl implements WebCrawler {
     private Logger LOG = LoggerFactory.getLogger(WebCrawlerImpl.class);
 
@@ -32,7 +32,7 @@ public class WebCrawlerImpl implements WebCrawler {
 
     private TermsAnalyzer termsAnalyzer;
 
-    private ForkJoinPool forkJoinPool = new ForkJoinPool();
+    private ForkJoinPool forkJoinPool;
 
     @Autowired
     public void setWebPageResolver(WebPageResolver webPageResolver) {
@@ -43,6 +43,11 @@ public class WebCrawlerImpl implements WebCrawler {
     @Qualifier("HTMLBodyTermsAnalyzer")
     public void setTermsAnalyzer(TermsAnalyzer termsAnalyzer) {
         this.termsAnalyzer = termsAnalyzer;
+    }
+
+    @Autowired
+    public void setForkJoinPool(ForkJoinPool forkJoinPool) {
+        this.forkJoinPool = forkJoinPool;
     }
 
     @Override

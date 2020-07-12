@@ -22,4 +22,6 @@
         <property name="ignoreResourceNotFound" value="false"/>
     </bean>
 
+    <bean id="webCrawlerForkJoinPool" class="java.util.concurrent.ForkJoinPool"></bean>
+
 </beans>
